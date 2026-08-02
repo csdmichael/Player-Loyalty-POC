@@ -1,0 +1,17 @@
+trigger: none
+pr: none
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+  - checkout: self
+  - task: AzureCLI@2
+    displayName: Validate and provision App Service web apps
+    inputs:
+      azureSubscription: $(AZURE_SERVICE_CONNECTION)
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        az deployment group validate --resource-group "$(AZURE_RESOURCE_GROUP)" --template-file infra/main.bicep --parameters infra/main.bicepparam
+        az deployment group create --name player-loyalty-infra --resource-group "$(AZURE_RESOURCE_GROUP)" --template-file infra/main.bicep --parameters infra/main.bicepparam

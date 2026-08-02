@@ -8,30 +8,74 @@ pr:
     include:
       - main
 
-pool:
-  vmImage: ubuntu-latest
+stages:
+  - stage: Build
+    jobs:
+      - job: BuildAndTest
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - checkout: self
+            clean: 'true'
+          - task: NodeTool@0
+            inputs:
+              versionSpec: 22.x
+          - script: npm ci
+            displayName: Install dependencies
+          - script: npm test
+            displayName: Test API
+          - script: npm run lint
+            displayName: Lint
+          - script: npm run build:api
+            displayName: Build API
+          - script: npm run build:web
+            displayName: Build frontend
+            env:
+              VITE_API_URL: https://$(AZURE_API_APP_NAME).azurewebsites.net
+          - script: npm run package:deploy
+            displayName: Stage deployment packages
+          - task: ArchiveFiles@2
+            inputs:
+              rootFolderOrFile: .artifacts/api
+              includeRootFolder: false
+              archiveFile: $(Build.ArtifactStagingDirectory)/api.zip
+          - task: ArchiveFiles@2
+            inputs:
+              rootFolderOrFile: .artifacts/web
+              includeRootFolder: false
+              archiveFile: $(Build.ArtifactStagingDirectory)/web.zip
+          - publish: $(Build.ArtifactStagingDirectory)
+            artifact: app-packages
 
-steps:
-  - checkout: self
-    clean: 'true'
-
-  - task: NodeTool@0
-    displayName: Use Node.js 22
-    inputs:
-      versionSpec: 22.x
-
-  - script: npm ci
-    displayName: Install dependencies
-
-  - script: npm run lint
-    displayName: Lint
-
-  - script: npm run build
-    displayName: Build
-
-  - task: AzureStaticWebApp@0
-    displayName: Deploy to Azure Static Web Apps
-    inputs:
-      app_location: dist
-      skip_app_build: true
-      azure_static_web_apps_api_token: $(AZURE_STATIC_WEB_APPS_API_TOKEN)
+  - stage: Deploy
+    dependsOn: Build
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'), ne(variables['Build.Reason'], 'PullRequest'))
+    jobs:
+      - deployment: DeployProduction
+        environment: player-loyalty-production
+        pool:
+          vmImage: ubuntu-latest
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: current
+                  artifact: app-packages
+                - checkout: self
+                - task: AzureCLI@2
+                  displayName: Deploy API and frontend
+                  inputs:
+                    azureSubscription: $(AZURE_SERVICE_CONNECTION)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      bash scripts/deploy-onedeploy.sh "$(AZURE_RESOURCE_GROUP)" "$(AZURE_API_APP_NAME)" "$(Pipeline.Workspace)/app-packages/api.zip"
+                      bash scripts/deploy-onedeploy.sh "$(AZURE_RESOURCE_GROUP)" "$(AZURE_WEB_APP_NAME)" "$(Pipeline.Workspace)/app-packages/web.zip"
+                - task: NodeTool@0
+                  inputs:
+                    versionSpec: 22.x
+                - script: node scripts/smoke-test.mjs
+                  displayName: Verify deployed integration
+                  env:
+                    API_URL: https://$(AZURE_API_APP_NAME).azurewebsites.net
+                    WEB_URL: https://$(AZURE_WEB_APP_NAME).azurewebsites.net

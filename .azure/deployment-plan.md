@@ -1,50 +1,90 @@
-# Azure DevOps Pipeline Deployment Plan
+# Player Loyalty App Service Deployment Plan
 
-Status: Validated
+Status: Deployed and validated
 
 ## Scope
 
-Add and register an Azure DevOps YAML pipeline that builds the existing React/Vite application and deploys the generated `dist/` directory to Azure Static Web Apps.
+Convert the existing frontend-only POC into a deployed two-service application:
 
-## Source
+- React/Vite frontend hosted by a Node.js server on Azure App Service.
+- Express REST API hosted on a second Azure App Service.
+- Both apps share one Linux App Service Plan.
+- API data remains hard-coded JSON under a source-controlled `config/` folder; no database is provisioned.
+- Swagger UI and an OpenAPI document describe the API.
 
-- Publish the pipeline definition to GitHub repository `csdmichael/Player-Loyalty-POC`, branch `main`.
-- Synchronize the pipeline files into the existing Azure Repo `main` branch through the Azure DevOps Git Push API.
-- Register the pipeline against Azure Repos so no new GitHub OAuth service connection is required.
+## Application Changes
 
-## Pipeline
+1. Move player, activity, offer, and notification-preference seed data into `config/loyalty-data.json`.
+2. Add a typed Express API with health, player summary, activity, offers, redemption, and preference endpoints.
+3. Add Swagger UI and expose the OpenAPI JSON document.
+4. Replace frontend constants with an API client configured by `VITE_API_URL`.
+5. Add loading, error, and mutation states while preserving the current responsive UX.
+6. Add a production frontend server that serves `dist/` and supports SPA fallback.
+7. Add focused API and frontend integration tests.
 
-1. Add `azure-pipelines.yml` at the repository root.
-2. Use an Ubuntu Microsoft-hosted agent and Node.js 22.
-3. Run `npm ci`, `npm run lint`, and `npm run build`.
-4. Deploy `dist/` with the Azure Static Web Apps pipeline task.
-5. Read the deployment token from a secret pipeline variable named `AZURE_STATIC_WEB_APPS_API_TOKEN`.
+## Azure Architecture
 
-## Security
+- Subscription: `ME-MngEnvMCAP829495-myaacoub-1` (`86b37969-9445-49cf-b03f-d8866235171c`).
+- Existing resource group: `ai-myaacoub`.
+- Region: West US 2, matching the resource group's general-purpose web workloads.
+- Existing Linux Basic B2 App Service Plan: `plan-taxforms` (scaled from B1 with user approval before deployment).
+- One Node.js 22 API web app.
+- One Node.js 22 frontend web app on the same plan.
+- HTTPS-only, minimum TLS 1.2, FTPS disabled, health checks enabled.
+- Frontend app setting points to the API URL; API CORS permits only the deployed frontend URL.
+- Bicep defines the resources and configuration reproducibly.
 
-- Do not store deployment credentials in source control.
-- Keep the Static Web Apps deployment token secret in Azure Pipelines.
-- Restrict pipeline source triggers to `main`.
+### Existing Plan Assessment
 
-## Validation
+Existing Linux plans in `ai-myaacoub` were evaluated before proposing a new plan:
 
-- Validate YAML structure and referenced task inputs.
-- Run the same lint and production build commands locally.
-- Create the pipeline in the `Player-Loyalty-POC` Azure DevOps project.
-- Verify the pipeline definition and report any remaining authorization or secret setup requirement.
+| Plan | 24-hour average memory | 24-hour peak memory | Decision |
+| --- | ---: | ---: | --- |
+| `plan-taxforms` | 80.50% | 82% | Approved for reuse by the user; monitor closely during deployed validation. |
+| `plan-fabriciq-b3` | 79.62% | 82% | Do not reuse; 7 sites and high sustained memory. |
+| `asp-fdryvnetgw-data-eastus` | 77.57% | 79% | Do not reuse; dedicated to two Foundry gateway Functions in East US. |
 
-Current target check: no Azure Static Web App was visible to the active Azure CLI subscription or Azure MCP tenant. Pipeline registration will therefore skip its first run until `AZURE_STATIC_WEB_APPS_API_TOKEN` is configured from the intended resource.
+The user explicitly approved `plan-taxforms` to avoid creating another plan and subsequently approved scaling it from B1 to B2 after deployment pressure produced Kudu timeouts. Both apps now run on that shared B2 plan.
 
-### Validation Proof
+## Deployment
 
-- Pipeline run `4` diagnosed: `npm ci` failed because npm 10 required `@emnapi/core` and `@emnapi/runtime` entries missing from the npm 11-generated lockfile.
-- Regenerated `package-lock.json` with npm `10.9.4`.
-- Clean npm `10.9.4` install passed in an isolated directory with zero vulnerabilities.
-- `npm run lint` passed.
-- `npm run build` passed with Vite `8.1.5`.
+1. Validate application tests, lint, build, OpenAPI, and Bicep.
+2. Provision the shared App Service Plan and both web apps.
+3. Package and deploy the API and frontend separately.
+4. Run deployed API health, Swagger, frontend, and browser integration checks.
+5. Update the Azure DevOps pipeline for both App Service deployments.
+6. Commit and publish source changes to GitHub and Azure Repos.
 
-## Out of Scope
+## Documentation
 
-- Provisioning or changing the Azure Static Web App resource.
-- Creating or rotating its deployment token.
-- Replacing the existing GitHub Actions workflow.
+- Add a table of contents to `README.md`.
+- Document local API/frontend development and testing.
+- Add a Deployed Services section containing the API URL, Swagger URL, frontend URL, and Azure DevOps project URL.
+
+## Validation Proof
+
+Validated on 2026-08-02:
+
+- `npm test`: 4 API tests passed, including local CORS, idempotent redemption, and preference persistence.
+- `npm run lint`: passed with no Oxlint diagnostics.
+- `npm run build`: API TypeScript compilation and Vite production build passed.
+- `npm run package:deploy`: API and frontend App Service artifacts staged successfully.
+- Bicep MCP build: `infra/main.bicep` and `infra/main.bicepparam` compiled with no diagnostics.
+- Azure deployment validation: authenticated to `ME-MngEnvMCAP829495-myaacoub-1`; template validation passed against `ai-myaacoub`.
+- Azure what-if: create-only result; 0 modifications and 0 deletions.
+- Azure Policy: no assignments found at or above the `ai-myaacoub` scope.
+- Static RBAC review: no application managed identities or data-plane role assignments are required because the API uses source-controlled JSON only.
+- Local browser integration: API-backed dashboard loaded; redemption remained single-use with balance persistence after navigation; saved SMS preference persisted after navigation.
+- Azure provisioning: API and frontend apps were created on the existing `plan-taxforms` plan; explicit `node api-dist/server.js` and `node web-server.mjs` startup commands are active.
+- Azure deployment: both bearer-authenticated OneDeploy operations completed with status 4 while SCM basic authentication remained disabled.
+- Deployed smoke test: API health, Swagger/OpenAPI, deployed-origin CORS, frontend health, and SPA delivery passed.
+- Public browser integration: registration opened the API-backed dashboard; a 2,500-point redemption changed the balance from 12,480 to 9,980 and persisted across navigation; the SMS preference persisted after save and navigation.
+- Azure DevOps quality artifacts: existing Bugs 51-53 were verified and Test Cases 56-60 were created and linked to their owning Features.
+
+## Required Approval
+
+- Approved: subscription `ME-MngEnvMCAP829495-myaacoub-1`.
+- Approved: resource group `ai-myaacoub`.
+- Approved: West US 2 and existing App Service Plan `plan-taxforms`.
+- App-name prefix: `player-loyalty-poc`.
+- Approved: create two web apps in `ai-myaacoub`; do not create a new App Service Plan.

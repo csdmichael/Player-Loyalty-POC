@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "rootDir": "api",
+    "outDir": "api-dist",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
+  },
+  "include": ["api/**/*.ts"],
+  "exclude": ["api/**/*.test.ts"]
+}
