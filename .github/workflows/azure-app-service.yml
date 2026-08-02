@@ -42,6 +42,7 @@ jobs:
         with:
           name: deployment-packages
           path: .artifacts/*.zip
+          include-hidden-files: true
 
   deploy:
     if: github.event_name != 'pull_request'
