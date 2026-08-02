@@ -52,6 +52,12 @@ The workflow at `.github/workflows/azure-static-web-apps.yml` deploys `main` to 
 
 The workflow performs a clean install, lint, production build, and deployment. Pull-request environments are removed automatically when the pull request closes.
 
+### Azure DevOps pipeline
+
+The pipeline at `azure-pipelines.yml` provides the same deployment path from Azure DevOps. It runs on pushes and pull requests targeting `main`, installs dependencies with Node.js 22, lints, builds, and deploys the generated `dist/` directory.
+
+Before the first run, add a secret pipeline variable named `AZURE_STATIC_WEB_APPS_API_TOKEN` containing the Static Web Apps deployment token. Keep the value secret and do not store it in source control.
+
 ## Requirement traceability
 
 | Requirement | Implementation |

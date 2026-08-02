@@ -1,6 +1,6 @@
 # Azure DevOps Pipeline Deployment Plan
 
-Status: Awaiting Approval
+Status: Ready for Validation
 
 ## Scope
 
@@ -8,9 +8,9 @@ Add and register an Azure DevOps YAML pipeline that builds the existing React/Vi
 
 ## Source
 
-- Primary source: GitHub repository `csdmichael/Player-Loyalty-POC`, branch `main`.
-- Azure Repos is currently empty because Git push authentication was rejected.
-- Pipeline registration will use an existing GitHub service connection when available.
+- Publish the pipeline definition to GitHub repository `csdmichael/Player-Loyalty-POC`, branch `main`.
+- Import the public GitHub repository into the empty Azure Repo server-side.
+- Register the pipeline against Azure Repos so no new GitHub OAuth service connection is required.
 
 ## Pipeline
 
@@ -32,6 +32,8 @@ Add and register an Azure DevOps YAML pipeline that builds the existing React/Vi
 - Run the same lint and production build commands locally.
 - Create the pipeline in the `Player-Loyalty-POC` Azure DevOps project.
 - Verify the pipeline definition and report any remaining authorization or secret setup requirement.
+
+Current target check: no Azure Static Web App was visible to the active Azure CLI subscription or Azure MCP tenant. Pipeline registration will therefore skip its first run until `AZURE_STATIC_WEB_APPS_API_TOKEN` is configured from the intended resource.
 
 ## Out of Scope
 
