@@ -53,31 +53,27 @@ stages:
     dependsOn: Build
     condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'), ne(variables['Build.Reason'], 'PullRequest'))
     jobs:
-      - deployment: DeployProduction
-        environment: player-loyalty-production
+      - job: DeployProduction
         pool:
           vmImage: ubuntu-latest
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - download: current
-                  artifact: app-packages
-                - checkout: self
-                - task: AzureCLI@2
-                  displayName: Deploy API and frontend
-                  inputs:
-                    azureSubscription: $(AZURE_SERVICE_CONNECTION)
-                    scriptType: bash
-                    scriptLocation: inlineScript
-                    inlineScript: |
-                      bash scripts/deploy-onedeploy.sh "$(AZURE_RESOURCE_GROUP)" "$(AZURE_API_APP_NAME)" "$(Pipeline.Workspace)/app-packages/api.zip"
-                      bash scripts/deploy-onedeploy.sh "$(AZURE_RESOURCE_GROUP)" "$(AZURE_WEB_APP_NAME)" "$(Pipeline.Workspace)/app-packages/web.zip"
-                - task: NodeTool@0
-                  inputs:
-                    versionSpec: 22.x
-                - script: node scripts/smoke-test.mjs
-                  displayName: Verify deployed integration
-                  env:
-                    API_URL: https://$(AZURE_API_APP_NAME).azurewebsites.net
-                    WEB_URL: https://$(AZURE_WEB_APP_NAME).azurewebsites.net
+        steps:
+          - download: current
+            artifact: app-packages
+          - checkout: self
+          - task: AzureCLI@2
+            displayName: Deploy API and frontend
+            inputs:
+              azureSubscription: $(AZURE_SERVICE_CONNECTION)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                bash scripts/deploy-onedeploy.sh "$(AZURE_RESOURCE_GROUP)" "$(AZURE_API_APP_NAME)" "$(Pipeline.Workspace)/app-packages/api.zip"
+                bash scripts/deploy-onedeploy.sh "$(AZURE_RESOURCE_GROUP)" "$(AZURE_WEB_APP_NAME)" "$(Pipeline.Workspace)/app-packages/web.zip"
+          - task: NodeTool@0
+            inputs:
+              versionSpec: 22.x
+          - script: node scripts/smoke-test.mjs
+            displayName: Verify deployed integration
+            env:
+              API_URL: https://$(AZURE_API_APP_NAME).azurewebsites.net
+              WEB_URL: https://$(AZURE_WEB_APP_NAME).azurewebsites.net
