@@ -1,6 +1,6 @@
 # Azure DevOps Pipeline Deployment Plan
 
-Status: Ready for Validation
+Status: Validated
 
 ## Scope
 
@@ -34,6 +34,14 @@ Add and register an Azure DevOps YAML pipeline that builds the existing React/Vi
 - Verify the pipeline definition and report any remaining authorization or secret setup requirement.
 
 Current target check: no Azure Static Web App was visible to the active Azure CLI subscription or Azure MCP tenant. Pipeline registration will therefore skip its first run until `AZURE_STATIC_WEB_APPS_API_TOKEN` is configured from the intended resource.
+
+### Validation Proof
+
+- Pipeline run `4` diagnosed: `npm ci` failed because npm 10 required `@emnapi/core` and `@emnapi/runtime` entries missing from the npm 11-generated lockfile.
+- Regenerated `package-lock.json` with npm `10.9.4`.
+- Clean npm `10.9.4` install passed in an isolated directory with zero vulnerabilities.
+- `npm run lint` passed.
+- `npm run build` passed with Vite `8.1.5`.
 
 ## Out of Scope
 
