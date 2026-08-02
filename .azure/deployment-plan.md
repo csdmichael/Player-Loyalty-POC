@@ -9,7 +9,7 @@ Add and register an Azure DevOps YAML pipeline that builds the existing React/Vi
 ## Source
 
 - Publish the pipeline definition to GitHub repository `csdmichael/Player-Loyalty-POC`, branch `main`.
-- Import the public GitHub repository into the empty Azure Repo server-side.
+- Synchronize the pipeline files into the existing Azure Repo `main` branch through the Azure DevOps Git Push API.
 - Register the pipeline against Azure Repos so no new GitHub OAuth service connection is required.
 
 ## Pipeline
