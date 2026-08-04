@@ -4,6 +4,19 @@ import request from 'supertest'
 import { createApp } from './app.js'
 
 describe('L&W Rewards API', () => {
+  it('redirects the deployed API root to the configured frontend', async () => {
+    const previousFrontendOrigin = process.env.FRONTEND_ORIGIN
+    process.env.FRONTEND_ORIGIN = 'https://player-loyalty.example'
+
+    try {
+      const response = await request(createApp()).get('/').expect(302)
+      assert.equal(response.headers.location, 'https://player-loyalty.example')
+    } finally {
+      if (previousFrontendOrigin === undefined) delete process.env.FRONTEND_ORIGIN
+      else process.env.FRONTEND_ORIGIN = previousFrontendOrigin
+    }
+  })
+
   it('serves health, player data, and Swagger metadata', async () => {
     const app = createApp()
     const health = await request(app).get('/health').expect(200)

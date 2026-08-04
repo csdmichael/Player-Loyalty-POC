@@ -26,13 +26,15 @@ function parseRedeemContext(body: unknown): RedeemContext {
 
 export function createApp(store = new LoyaltyStore()) {
   const app = express()
-  const allowedOrigins = process.env.FRONTEND_ORIGIN
-    ? [process.env.FRONTEND_ORIGIN]
+  const frontendOrigin = process.env.FRONTEND_ORIGIN
+  const allowedOrigins = frontendOrigin
+    ? [frontendOrigin]
     : ['http://localhost:5173', 'http://127.0.0.1:5173']
   app.disable('x-powered-by')
   app.use(cors({ origin: allowedOrigins }))
   app.use(express.json({ limit: '32kb' }))
 
+  if (frontendOrigin) app.get('/', (_request, response) => response.redirect(frontendOrigin))
   app.get('/health', (_request, response) => response.json({ status: 'healthy' }))
   app.get('/api/player', (_request, response) => response.json(store.getPlayer()))
   app.get('/api/activity', (_request, response) => response.json(store.getActivity()))

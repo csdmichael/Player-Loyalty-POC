@@ -13,6 +13,10 @@ async function expectOk(url, options) {
 const apiHealth = await expectOk(`${apiUrl}/health`)
 assert.equal((await apiHealth.json()).status, 'healthy')
 
+const apiRoot = await fetch(apiUrl, { redirect: 'manual' })
+assert.equal(apiRoot.status, 302, `${apiUrl} returned ${apiRoot.status} instead of redirecting`)
+assert.equal(apiRoot.headers.get('location'), webUrl)
+
 const player = await expectOk(`${apiUrl}/api/player`)
 assert.equal(typeof (await player.json()).balance, 'number')
 
@@ -27,4 +31,4 @@ assert.equal((await webHealth.json()).status, 'healthy')
 
 const web = await expectOk(webUrl)
 assert.match(await web.text(), /<div id="root"><\/div>/)
-console.log('Deployed API, Swagger, CORS, frontend health, and SPA checks passed.')
+console.log('Deployed API redirect, Swagger, CORS, frontend health, and SPA checks passed.')
