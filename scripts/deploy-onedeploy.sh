@@ -27,10 +27,10 @@ http_status="$(curl --silent --show-error --http1.1 \
   --output "$response_file" \
   --write-out '%{http_code}' \
   --max-time 1200 \
-  "${scm_url}/api/publish?type=zip&async=true&clean=true&restart=true")"
+  "${scm_url}/api/zipdeploy?isAsync=true&clean=true")"
 
 if [[ "$http_status" != "202" && "$http_status" != "200" ]]; then
-  echo "OneDeploy upload for ${app_name} failed with HTTP ${http_status}." >&2
+  echo "ZipDeploy upload for ${app_name} failed with HTTP ${http_status}." >&2
   cat "$response_file" >&2
   exit 1
 fi
@@ -40,7 +40,7 @@ if [[ -z "$deployment_url" ]]; then
   deployment_url="${scm_url}/api/deployments/latest"
 fi
 
-echo "OneDeploy accepted for ${app_name}; waiting for completion."
+echo "ZipDeploy accepted for ${app_name}; waiting for completion."
 for attempt in {1..90}; do
   deployment="$(curl --silent --show-error --fail \
     --header "Authorization: Bearer $token" \
@@ -50,11 +50,11 @@ for attempt in {1..90}; do
 
   case "$status" in
     4)
-      echo "OneDeploy completed for ${app_name}."
+      echo "ZipDeploy completed for ${app_name}."
       exit 0
       ;;
     3)
-      echo "OneDeploy failed for ${app_name}." >&2
+      echo "ZipDeploy failed for ${app_name}." >&2
       echo "$deployment" >&2
       exit 1
       ;;
@@ -63,5 +63,5 @@ for attempt in {1..90}; do
   sleep 10
 done
 
-echo "Timed out waiting for OneDeploy on ${app_name}." >&2
+echo "Timed out waiting for ZipDeploy on ${app_name}." >&2
 exit 1

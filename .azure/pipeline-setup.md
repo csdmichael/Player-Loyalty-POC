@@ -2,7 +2,7 @@
 
 Both pipeline systems build the same API and frontend packages. Infrastructure provisioning is deliberately separate from application deployment.
 
-Application packages are uploaded through OneDeploy with the Azure AD access token issued to each pipeline's workload identity. SCM basic authentication and publishing-profile secrets are not required.
+Application packages include their production dependencies and are uploaded through Kudu ZipDeploy with the Azure AD access token issued to each pipeline's workload identity. Remote Oryx builds, SCM basic authentication, and publishing-profile secrets are not required.
 
 ## Azure target
 

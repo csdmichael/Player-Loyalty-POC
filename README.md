@@ -163,7 +163,7 @@ Three Azure Pipelines definitions live in the repository root, covering app depl
 | Infrastructure | `azure-pipelines-infra.yml` | Provisions the two App Service apps from `infra/main.bicep`. | Manual |
 | Test cases | `azure-pipelines-tests.yml` | Runs the automated test cases and publishes JUnit results. Exposes a `testCase` parameter to run a single case or `all`. | Manual / from Test Plans |
 
-Authentication and required pipeline variables are documented in `.azure/pipeline-setup.md`. The pipelines use workload identity federation and Azure AD bearer-authenticated OneDeploy, so SCM basic authentication and publishing passwords remain disabled.
+Authentication and required pipeline variables are documented in `.azure/pipeline-setup.md`. The pipelines package production dependencies and use workload identity federation with Azure AD bearer-authenticated ZipDeploy, so App Service does not run a remote Oryx build and SCM basic authentication remains disabled.
 
 See [Automated test cases](#automated-test-cases) for the test pipeline's `testCase` parameter values and the Azure DevOps test case bindings. Pipeline test reporting uses the [Publish Test Results task](https://learn.microsoft.com/azure/devops/pipelines/tasks/reference/publish-test-results-v2), and automated cases can also run through the [Azure Test Plan task](https://learn.microsoft.com/azure/devops/pipelines/tasks/reference/azure-test-plan-v0).
 
