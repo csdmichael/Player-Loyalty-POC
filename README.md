@@ -29,10 +29,6 @@ A responsive proof of concept for the L&W Rewards mobile experience. The applica
 
 ## Architecture
 
-The React client calls a typed Express REST API. The API initializes its in-memory state from `config/loyalty-data.json`, so the POC needs no database while still demonstrating service-backed reads and mutations. Redemption is idempotent for the lifetime of the API process, and saved notification preferences remain available across frontend navigation.
-
-Swagger UI and the OpenAPI document are exposed by the API. In Azure, the API and frontend run as separate Linux Node.js App Service apps on the existing `plan-taxforms` App Service Plan in `ai-myaacoub`.
-
 ![Architecture diagram of the L&W Rewards Player Loyalty POC](docs/architecture.png)
 
 The diagram shows how a single, integrated Microsoft toolchain carries a feature from a written requirement all the way to a running app and a business-facing assistant. Each platform owns one job and hands off to the next:
@@ -43,6 +39,7 @@ The diagram shows how a single, integrated Microsoft toolchain carries a feature
 4. **GitHub Copilot coding agent - implementation.** A work item in Azure DevOps is handed to the **GitHub Copilot coding agent**, which implements the change in GitHub and opens a pull request for review (see [Screenshots](#screenshots) for BUG 52 and BUG 53).
 5. **Azure App Service - hosting.** The Player Loyalty frontend and REST APIs are deployed as separate Linux Node.js App Service apps (see [Azure deployment](#azure-deployment)).
 6. **Microsoft Copilot Studio - business-facing agents.** Copilot Studio builds agents that connect to knowledge across SharePoint, Azure DevOps, and GitHub, then publishes them to **Microsoft Teams** and **Microsoft 365 Copilot** so business users can ask questions in natural language.
+7. **Power BI - work progress dashboards and actionable insights.** Power BI combines delivery and operational data from Azure DevOps, GitHub, Azure, Power Platform, and Application Insights to report on work progress, sprint burndown, pipeline health, team performance, test coverage, and business value.
 
 | Stage | Microsoft technology | Role in this solution |
 | --- | --- | --- |
@@ -52,10 +49,11 @@ The diagram shows how a single, integrated Microsoft toolchain carries a feature
 | CI/CD | **Azure Pipelines** | Build, test, and deploy the app and run automated test cases |
 | Source control | **GitHub** | Hosts application source code, branches, and pull requests |
 | AI implementation | **GitHub Copilot coding agent** | Implements Azure DevOps work items in GitHub via pull requests |
-| Hosting | **Azure App Service** | Runs the Player Loyalty frontend and APIs |
+| Application on Azure | **React 19**, **Express 5**, and **Azure App Service** | Runs the React frontend and typed REST API as separate Linux Node.js App Service apps on the existing `plan-taxforms` plan in `ai-myaacoub`. The API exposes Swagger UI and OpenAPI, and initializes its in-memory POC state from `config/loyalty-data.json` |
 | Business assistants | **Microsoft Copilot Studio** | Agents over SharePoint/ADO/GitHub knowledge, published to Teams and M365 Copilot |
+| Analytics and reporting | **Power BI** | Provides work progress dashboards and actionable delivery, quality, operational, and business insights |
 
-Together these products demonstrate the breadth of the Microsoft portfolio working as one system: documentation (SharePoint), planning and quality (Azure DevOps), code and AI-assisted development (GitHub and GitHub Copilot), cloud hosting (Azure), and conversational access for business users (Copilot Studio, Teams, and Microsoft 365 Copilot).
+Together these products demonstrate the breadth of the Microsoft portfolio working as one system: documentation (SharePoint), planning and quality (Azure DevOps), code and AI-assisted development (GitHub and GitHub Copilot), cloud hosting (Azure), analytics and reporting (Power BI), and conversational access for business users (Copilot Studio, Teams, and Microsoft 365 Copilot).
 
 ## Technology
 
