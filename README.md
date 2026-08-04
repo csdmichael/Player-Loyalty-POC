@@ -10,9 +10,11 @@ A responsive proof of concept for the L&W Rewards mobile experience. The applica
 - [Local development](#local-development)
 - [Quality checks](#quality-checks)
 - [Automated test cases](#automated-test-cases)
+- [Azure DevOps pipelines](#azure-devops-pipelines)
 - [Azure deployment](#azure-deployment)
 - [Deployed services](#deployed-services)
 - [Requirement traceability](#requirement-traceability)
+- [Project documents](#project-documents)
 - [Screenshots](#screenshots)
 - [Migration tooling](#migration-tooling)
 - [Accessibility and security notes](#accessibility-and-security-notes)
@@ -127,6 +129,20 @@ To bind an Azure DevOps test case to this pipeline:
 2. Point it at the **Player Loyalty - Test Cases** pipeline.
 3. Set the pipeline's `testCase` parameter to the matching identifier (for example, `TC-54`) so running the ADO test case executes only that automated case.
 
+## Azure DevOps pipelines
+
+Three Azure Pipelines definitions live in the repository root, covering app deployment, infrastructure, and automated test cases:
+
+| Pipeline | Definition | Purpose | Trigger |
+| --- | --- | --- | --- |
+| App deploy | `azure-pipelines.yml` | Tests, builds, packages, and deploys the API and frontend App Service apps. Pull requests run CI only; `main` deploys to the protected `production` environment. | Push/PR to `main`; deploy on `main` |
+| Infrastructure | `azure-pipelines-infra.yml` | Provisions the two App Service apps from `infra/main.bicep`. | Manual |
+| Test cases | `azure-pipelines-tests.yml` | Runs the automated test cases and publishes JUnit results. Exposes a `testCase` parameter to run a single case or `all`. | Manual / from Test Plans |
+
+Authentication and required pipeline variables are documented in `.azure/pipeline-setup.md`. The pipelines use workload identity federation and Azure AD bearer-authenticated OneDeploy, so SCM basic authentication and publishing passwords remain disabled.
+
+See [Automated test cases](#automated-test-cases) for the test pipeline's `testCase` parameter values and the Azure DevOps test case bindings.
+
 ## Azure deployment
 
 The application uses regular Azure App Service, not Azure Static Web Apps. Bicep in `infra/main.bicep` references the existing B2 `plan-taxforms` plan and creates only the two web apps. It also declares explicit Node.js startup commands and health checks for both services.
@@ -135,12 +151,6 @@ The GitHub workflows are:
 
 - `.github/workflows/azure-infrastructure.yml`: manually validates and provisions the two App Service apps.
 - `.github/workflows/azure-app-service.yml`: tests and builds pull requests, then deploys `main` to the protected `production` environment.
-
-### Azure DevOps pipeline
-
-The pipeline at `azure-pipelines.yml` tests, builds, packages, and deploys both apps. Pull requests run CI without deployment. The separate `azure-pipelines-infra.yml` pipeline provisions infrastructure manually.
-
-Authentication and required pipeline variables are documented in `.azure/pipeline-setup.md`. Both systems use workload identity federation and Azure AD bearer-authenticated OneDeploy, so SCM basic authentication and publishing passwords remain disabled.
 
 ## Deployed services
 
@@ -160,6 +170,14 @@ Authentication and required pipeline variables are documented in `.azure/pipelin
 | US-301 Offer management | Filters, balance checks, redemption/activation, confirmation state |
 | US-401 Notification preferences | Channel/category toggles, quiet hours, save state |
 | API integration | Config-backed player, activity, offer, redemption, and preference endpoints |
+
+## Project documents
+
+Reference material for this proof of concept lives under `docs/`:
+
+- [Player Loyalty requirements](docs/requirements/LNW%20Player%20Loyalty%20-%20Requirements.docx) - functional and non-functional requirements.
+- [Player Loyalty UX mockups](docs/requirements/LNW%20Player%20Loyalty%20-%20UX%20Mockups.pdf) - the screen designs the client implements.
+- [Azure DevOps and SharePoint comparison](docs/ppt/LNW-Azure-DevOps-SharePoint-Comparison.pdf) - tooling comparison deck.
 
 ## Screenshots
 
