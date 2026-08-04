@@ -33,6 +33,8 @@ The React client calls a typed Express REST API. The API initializes its in-memo
 
 Swagger UI and the OpenAPI document are exposed by the API. In Azure, the API and frontend run as separate Linux Node.js App Service apps on the existing `plan-taxforms` App Service Plan in `ai-myaacoub`.
 
+![Architecture diagram of the L&W Rewards Player Loyalty POC](docs/architecture.png)
+
 ## Technology
 
 - React 19 and TypeScript
