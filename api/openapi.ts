@@ -15,8 +15,24 @@ export const openApiDocument = {
       post: {
         summary: 'Redeem or activate an offer',
         parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }],
+        requestBody: {
+          required: false,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  ageVerified: { type: 'boolean' },
+                  kycStatus: { type: 'string' },
+                  entitlements: { type: 'array', items: { type: 'string' } },
+                },
+              },
+            },
+          },
+        },
         responses: {
           '200': { description: 'Offer redeemed' },
+          '403': { description: 'Age/KYC verification or required entitlement missing' },
           '404': { description: 'Offer not found' },
           '409': { description: 'Offer already redeemed or points are insufficient' },
         },

@@ -15,7 +15,10 @@
       "monthPoints": 1240,
       "redeemedOffers": 8,
       "yearVisits": 12
-    }
+    },
+    "ageVerified": true,
+    "kycStatus": "verified",
+    "entitlements": ["VIPAccess"]
   },
   "activity": [
     { "id": 1, "title": "Slots at The Grand", "detail": "Today, 9:32 PM", "points": 320 },
@@ -26,7 +29,7 @@
     { "id": 1, "category": "Dining", "title": "$25 Dining Credit", "detail": "Ember Grill and 6 venues", "cost": 2500, "icon": "utensils", "redeemed": false },
     { "id": 2, "category": "Hotel", "title": "Free Night Stay", "detail": "Deluxe king, Fri-Sun", "cost": 20000, "icon": "hotel", "redeemed": false },
     { "id": 3, "category": "Play", "title": "2x Points Weekend", "detail": "Play Sat-Sun, auto-apply", "cost": 0, "icon": "sparkles", "redeemed": false },
-    { "id": 4, "category": "Play", "title": "VIP Lounge Pass", "detail": "Day pass at The Grand", "cost": 6000, "icon": "martini", "redeemed": false }
+    { "id": 4, "category": "Play", "title": "VIP Lounge Pass", "detail": "Day pass at The Grand", "cost": 6000, "icon": "martini", "redeemed": false, "ageRestricted": true, "requiredEntitlement": "VIPAccess" }
   ],
   "preferences": {
     "push": true,

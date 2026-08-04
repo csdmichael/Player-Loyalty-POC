@@ -145,7 +145,11 @@ function App() {
   if (!data) return <main className="auth-shell"><section className="auth-panel"><div className="form-wrap"><p className="step-label">LOADING</p><h2>Getting your rewards ready...</h2></div></section></main>
 
   const handleRedeem = async (offer: Offer) => {
-    const result = await redeemOffer(offer.id)
+    const result = await redeemOffer(offer.id, {
+      ageVerified: data.player.ageVerified,
+      kycStatus: data.player.kycStatus,
+      entitlements: data.player.entitlements,
+    })
     setData((current) => current && {
       ...current,
       player: { ...current.player, balance: result.balance },

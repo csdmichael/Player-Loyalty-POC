@@ -1,0 +1,69 @@
+# Runs the automated test cases in tests/api.integration.test.ts.
+# Select a single ADO test case with the testCase parameter, or run the full
+# suite with the default value "all". Each Azure DevOps test case is bound to
+# this pipeline and passes its own [TC-xx] identifier as the parameter value.
+
+parameters:
+  - name: testCase
+    displayName: Test case to run
+    type: string
+    default: all
+    values:
+      - all
+      - TC-01
+      - TC-02
+      - TC-03
+      - TC-04
+      - TC-05
+      - TC-06
+      - TC-07
+      - TC-08
+      - TC-09
+      - TC-10
+      - TC-11
+      - TC-12
+      - TC-13
+      - TC-14
+
+# Test cases are triggered manually or from an ADO test plan, not on every push.
+trigger: none
+pr: none
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  selectedTestCase: ${{ parameters.testCase }}
+
+steps:
+  - checkout: self
+    clean: 'true'
+  - task: NodeTool@0
+    inputs:
+      versionSpec: 22.x
+    displayName: Use Node.js 22
+  - script: npm ci
+    displayName: Install dependencies
+  - script: |
+      set -e
+      if [ "$(selectedTestCase)" = "all" ]; then
+        echo "Running the full automated test suite"
+        npm run test:cases
+      else
+        echo "Running test case $(selectedTestCase)"
+        # --test-name-pattern must precede the file path, so tsx is called directly.
+        npx tsx --test \
+          --test-reporter=spec --test-reporter-destination=stdout \
+          --test-reporter=junit --test-reporter-destination=test-results.xml \
+          --test-name-pattern="$(selectedTestCase)" \
+          tests/api.integration.test.ts
+      fi
+    displayName: 'Run test case: $(selectedTestCase)'
+  - task: PublishTestResults@2
+    displayName: Publish test results
+    condition: succeededOrFailed()
+    inputs:
+      testResultsFormat: JUnit
+      testResultsFiles: test-results.xml
+      testRunTitle: 'Automated test case: $(selectedTestCase)'
+      failTaskOnFailedTests: true

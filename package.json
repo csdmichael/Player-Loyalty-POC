@@ -16,6 +16,7 @@
     "start:web": "node web-server.mjs",
     "test": "npm run test:api",
     "test:api": "tsx --test api/app.test.ts",
+    "test:cases": "tsx --test --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit --test-reporter-destination=test-results.xml tests/api.integration.test.ts",
     "test:deployed": "node scripts/smoke-test.mjs"
   },
   "dependencies": {

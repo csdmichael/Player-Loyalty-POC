@@ -19,6 +19,9 @@ export interface Player {
     redeemedOffers: number
     yearVisits: number
   }
+  ageVerified: boolean
+  kycStatus: string
+  entitlements: string[]
 }
 
 export interface ActivityItem {
@@ -37,6 +40,8 @@ export interface Offer {
   icon: 'utensils' | 'hotel' | 'sparkles' | 'martini'
   redeemed: boolean
   redemptionCode?: string
+  ageRestricted?: boolean
+  requiredEntitlement?: string
 }
 
 export interface LoyaltyData {
@@ -50,6 +55,12 @@ export interface RedemptionResult {
   status: 'redeemed'
   offer: Offer
   balance: number
+}
+
+export interface RedeemContext {
+  ageVerified: boolean
+  kycStatus: string
+  entitlements: string[]
 }
 
 const apiUrl = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000').replace(/\/$/, '')
@@ -76,8 +87,8 @@ export async function getLoyaltyData(): Promise<LoyaltyData> {
   return { player, activity, offers, preferences }
 }
 
-export function redeemOffer(id: number) {
-  return request<RedemptionResult>(`/api/offers/${id}/redeem`, { method: 'POST' })
+export function redeemOffer(id: number, context: RedeemContext) {
+  return request<RedemptionResult>(`/api/offers/${id}/redeem`, { method: 'POST', body: JSON.stringify(context) })
 }
 
 export function savePreferences(preferences: Preferences) {
