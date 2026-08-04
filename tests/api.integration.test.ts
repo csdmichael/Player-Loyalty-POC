@@ -132,4 +132,37 @@ describe('Player Loyalty POC - automated test cases', () => {
       .expect(403)
     assert.equal(response.body.error, 'Required entitlement missing for this offer.')
   })
+
+  // Azure DevOps Test Case 54 (positive): eligibility pre-conditions are evaluated
+  // and, when satisfied, the transactional action proceeds for a gated offer.
+  it('[TC-54] Eligibility pre-conditions pass then the transaction proceeds', async () => {
+    const app = createApp()
+    const before = await request(app).get('/api/player').expect(200)
+    const redemption = await request(app)
+      .post('/api/offers/4/redeem')
+      .send({ ageVerified: true, kycStatus: 'verified', entitlements: ['VIPAccess'] })
+      .expect(200)
+    assert.equal(redemption.body.status, 'redeemed')
+    assert.equal(redemption.body.offer.redemptionCode, 'LW-1052')
+    assert.equal(redemption.body.balance, before.body.balance - 6000)
+  })
+
+  // Azure DevOps Test Case 55 (negative): an ineligible attempt returns a clear
+  // reason and leaves balances and redemption codes unchanged.
+  it('[TC-55] Ineligible attempt changes no balance and issues no code', async () => {
+    const app = createApp()
+    const before = await request(app).get('/api/player').expect(200)
+    const response = await request(app)
+      .post('/api/offers/4/redeem')
+      .send({ ageVerified: true, kycStatus: 'verified', entitlements: [] })
+      .expect(403)
+    assert.equal(response.body.error, 'Required entitlement missing for this offer.')
+
+    const player = await request(app).get('/api/player').expect(200)
+    const offers = await request(app).get('/api/offers').expect(200)
+    const gatedOffer = offers.body.find((offer: { id: number }) => offer.id === 4)
+    assert.equal(player.body.balance, before.body.balance)
+    assert.equal(gatedOffer.redeemed, false)
+    assert.equal(gatedOffer.redemptionCode, undefined)
+  })
 })

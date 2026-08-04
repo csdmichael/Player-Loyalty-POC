@@ -24,6 +24,8 @@ parameters:
       - TC-12
       - TC-13
       - TC-14
+      - TC-54
+      - TC-55
 
 # Test cases are triggered manually or from an ADO test plan, not on every push.
 trigger: none

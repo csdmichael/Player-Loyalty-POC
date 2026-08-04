@@ -103,18 +103,29 @@ npx tsx --test --test-name-pattern="TC-05" tests/api.integration.test.ts
 | TC-12 | CORS allows only the approved frontend origins | Security |
 | TC-13 | Age/KYC verification blocks underage or unverified redemption | BUG 52 (fixed) |
 | TC-14 | Offer-level gating enforces age-restricted content and entitlements | BUG 53 (fixed) |
+| TC-54 | Eligibility pre-conditions pass then the transaction proceeds | ADO Test Case 54 (positive) |
+| TC-55 | Ineligible attempt changes no balance and issues no code | ADO Test Case 55 (negative) |
 
 TC-13 and TC-14 are regression cases for the two Azure DevOps bugs. The API now enforces age/KYC verification and offer-level entitlement gating during redemption, so both cases are active and pass. Callers supply an eligibility context (`ageVerified`, `kycStatus`, `entitlements`) on redeem; offers can declare `ageRestricted` and `requiredEntitlement` metadata.
+
+TC-54 and TC-55 are bound to the Azure DevOps Test Cases 54 and 55 and run through the test pipeline by passing `TC-54` or `TC-55` as the `testCase` parameter.
 
 ### Test pipeline
 
 The pipeline at `azure-pipelines-tests.yml` runs the test cases and exposes a `testCase` runtime parameter. Choose `all` to run the full suite or a specific `TC-xx` value to run one case; the pipeline forwards the value to the runner as `--test-name-pattern`. Results are published as JUnit so they appear in the Azure DevOps **Tests** tab.
 
+The pipeline is registered in Azure DevOps as **Player Loyalty - Test Cases**. Test Cases 54 and 55 are linked to it with their matching parameter values:
+
+| Azure DevOps test case | Pipeline `testCase` parameter | Automated test |
+| --- | --- | --- |
+| 54 - Positive eligibility pre-conditions | `TC-54` | `[TC-54]` in `tests/api.integration.test.ts` |
+| 55 - Negative ineligible attempt | `TC-55` | `[TC-55]` in `tests/api.integration.test.ts` |
+
 To bind an Azure DevOps test case to this pipeline:
 
 1. Open the test case in **Boards > Test Plans** and go to the test case's **Associated Automation**.
-2. Point it at the `azure-pipelines-tests.yml` pipeline.
-3. Set the pipeline's `testCase` parameter to the matching identifier (for example, `TC-05`) so running the ADO test case executes only that automated case.
+2. Point it at the **Player Loyalty - Test Cases** pipeline.
+3. Set the pipeline's `testCase` parameter to the matching identifier (for example, `TC-54`) so running the ADO test case executes only that automated case.
 
 ## Azure deployment
 
