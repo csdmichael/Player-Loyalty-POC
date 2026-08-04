@@ -129,6 +129,8 @@ To bind an Azure DevOps test case to this pipeline:
 2. Point it at the **Player Loyalty - Test Cases** pipeline.
 3. Set the pipeline's `testCase` parameter to the matching identifier (for example, `TC-54`) so running the ADO test case executes only that automated case.
 
+References: [Associate automated tests with test cases](https://learn.microsoft.com/azure/devops/test/associate-automated-test-with-test-case?view=azure-devops), [Run automated tests from test plans](https://learn.microsoft.com/azure/devops/test/run-automated-tests-from-test-hub?view=azure-devops), and [Requirements traceability](https://learn.microsoft.com/azure/devops/pipelines/test/requirements-traceability?view=azure-devops).
+
 ## Azure DevOps pipelines
 
 Three Azure Pipelines definitions live in the repository root, covering app deployment, infrastructure, and automated test cases:
@@ -141,7 +143,7 @@ Three Azure Pipelines definitions live in the repository root, covering app depl
 
 Authentication and required pipeline variables are documented in `.azure/pipeline-setup.md`. The pipelines use workload identity federation and Azure AD bearer-authenticated OneDeploy, so SCM basic authentication and publishing passwords remain disabled.
 
-See [Automated test cases](#automated-test-cases) for the test pipeline's `testCase` parameter values and the Azure DevOps test case bindings.
+See [Automated test cases](#automated-test-cases) for the test pipeline's `testCase` parameter values and the Azure DevOps test case bindings. Pipeline test reporting uses the [Publish Test Results task](https://learn.microsoft.com/azure/devops/pipelines/tasks/reference/publish-test-results-v2), and automated cases can also run through the [Azure Test Plan task](https://learn.microsoft.com/azure/devops/pipelines/tasks/reference/azure-test-plan-v0).
 
 ## Azure deployment
 
@@ -215,13 +217,13 @@ The BUG 52 Discussion thread records the GitHub Copilot coding agent acknowledgi
 
 ## Migration tooling
 
-Recommended tools for migrating collaboration and engineering systems onto the Microsoft toolchain. The Perforce guidance intentionally uses a **hybrid** model: move light, code-centric repositories to GitHub while keeping asset-heavy game projects on Perforce Helix Core.
+Recommended tools for migrating collaboration and engineering systems onto the Microsoft toolchain. The **primary goal of this demo is to migrate from Jira to Azure DevOps (Boards) and from Confluence to SharePoint**; those two rows carry the most detail and reference links below. The Perforce guidance intentionally uses a **hybrid** model: move light, code-centric repositories to GitHub while keeping asset-heavy game projects on Perforce Helix Core.
 
 | Migration | Recommended tool(s) | Why | Notes |
 | --- | --- | --- | --- |
-| **Jira → Azure DevOps Boards** | Microsoft **Azure DevOps Migration Tools** (community `azure-devops-migration-tools`); commercial options: **Solidify Atlas**, **OpsHub**, **Transporter for Jira** | Preserves work-item hierarchy, history, comments, attachments, and links; supports field/state mapping and iterative delta runs | Build a field/workflow mapping first (Jira issue types → ADO work-item types, statuses → states). Migrate in waves and reconcile IDs. For small projects the Jira CSV/REST import into ADO can suffice. |
-| **Confluence → SharePoint** | **AvePoint Fly / Migration**, **ShareGate**, **Microsoft SharePoint Migration Tool (SPMT)** | AvePoint and ShareGate map Confluence spaces, pages, hierarchy, attachments, and permissions to SharePoint sites/pages with fidelity reports | Native SPMT targets file shares/on-prem SharePoint, so pair it with a Confluence exporter or use AvePoint/ShareGate for direct Confluence→SharePoint Online. Rationalize spaces → sites and page trees → navigation before cutover. |
-| **qTest → Azure DevOps Test Plans** | **Azure DevOps REST API** (Test Plans/Suites/Cases) with qTest export, or the **Test Case Migrator** pattern / partner services (**OpsHub**) | Recreates test plans, suites, test cases, steps, parameters, and configurations as native ADO Test Cases linked to requirements | Export qTest via its API/CSV, transform to ADO test-case schema, and bulk-create through the REST API. Re-link automated cases to pipelines (see [Automated test cases](#automated-test-cases)) after import. |
+| **Jira → Azure DevOps Boards** *(primary)* | [Azure DevOps Migration Tools](https://github.com/nkdAgility/azure-devops-migration-tools) (community `azure-devops-migration-tools`); the [Azure DevOps REST API](https://learn.microsoft.com/rest/api/azure/devops/wit/?view=azure-devops-rest-7.1) / [Node](https://github.com/microsoft/azure-devops-node-api) client; commercial options: **Solidify Atlas**, **OpsHub**, **Transporter for Jira** | Preserves work-item hierarchy, history, comments, attachments, and links; supports field/state mapping and iterative delta runs | Build a field/workflow mapping first (Jira issue types → ADO work-item types, statuses → states). Migrate in waves and reconcile IDs. For small projects the Jira CSV/REST import into Azure Boards can suffice. See [migrate and integrate work tracking data](https://learn.microsoft.com/azure/devops/boards/extensions/migrate-integrate?view=azure-devops). |
+| **Confluence → SharePoint** *(primary)* | **AvePoint Fly / Migration**, **ShareGate**, plus the [SharePoint Migration Tool (SPMT)](https://learn.microsoft.com/sharepointmigration/how-to-use-the-sharepoint-migration-tool) and [PnP PowerShell](https://github.com/pnp/powershell) for SharePoint Online provisioning | AvePoint and ShareGate map Confluence spaces, pages, hierarchy, attachments, and permissions to SharePoint sites/pages with fidelity reports | Native SPMT targets file shares and on-prem SharePoint, so pair it with a Confluence exporter or use AvePoint/ShareGate for direct Confluence → SharePoint Online. Rationalize spaces → sites and page trees → navigation before cutover. See [create a migration task](https://learn.microsoft.com/sharepointmigration/spmt-create-task) and [user mapping](https://learn.microsoft.com/sharepointmigration/create-a-user-mapping-file-for-data-content-migration). |
+| **qTest → Azure DevOps Test Plans** | [Azure DevOps REST API](https://learn.microsoft.com/rest/api/azure/devops/testplan/?view=azure-devops-rest-7.1) (Test Plans/Suites/Cases) with qTest export; partner services (**OpsHub**) | Recreates test plans, suites, test cases, steps, parameters, and configurations as native ADO Test Cases linked to requirements | Export qTest via its API/CSV, transform to ADO test-case schema, and bulk-create through the REST API. Then [associate the automated tests with test cases](https://learn.microsoft.com/azure/devops/test/associate-automated-test-with-test-case?view=azure-devops) (see [Automated test cases](#automated-test-cases)). |
 | **Perforce → GitHub** *(code-centric repos only)* | **`git p4`**, **`git-filter-repo`**, or **GitHub's Perforce import** guidance; large-scale: **Perforce-to-Git** partner tooling | For repositories that are **not** asset-heavy (little or no large binary content), a clean Git history with preserved changelist mapping is straightforward and unlocks GitHub PRs, Actions, and Copilot | Convert branch/changelist history, then enforce PR-based flow. Keep `.gitattributes` and **Git LFS** for the occasional binary. |
 | **Perforce (keep) — game/asset-heavy projects** | **Perforce Helix Core** (retain as source of truth) + **Helix DAM**, **P4V**, **Unreal/Unity Perforce integration** | Large binary assets, exclusive file locking, and multi-terabyte depots are where Perforce outperforms Git/LFS; migrating them adds risk and cost with little benefit | Do **not** migrate. Optionally bridge to GitHub for code-only submodules or CI triggers, but the asset depot stays on Helix Core. |
 
@@ -234,6 +236,29 @@ For studios that are both building the game and shipping supporting services, sp
 - **Bridge** — trigger GitHub Actions or Azure Pipelines from Perforce submits (and vice versa) so CI/CD spans both systems, and use Git LFS only for stray binaries on the GitHub side.
 
 This keeps each team on the version-control system best suited to its workload while unifying planning (Azure Boards) and automation across both.
+
+### Microsoft Learn and sample repositories
+
+**Jira → Azure DevOps (Boards)**
+
+- [About migrating and integrating work tracking data](https://learn.microsoft.com/azure/devops/boards/extensions/migrate-integrate?view=azure-devops) - migration options and extensions for Azure Boards.
+- [What is Azure Boards?](https://learn.microsoft.com/azure/devops/boards/get-started/what-is-azure-boards?view=azure-devops) - target-platform concepts and end-to-end traceability.
+- [GitHub & Azure Boards](https://learn.microsoft.com/azure/devops/boards/github/?view=azure-devops) and [link GitHub commits and PRs to work items](https://learn.microsoft.com/azure/devops/boards/github/link-to-from-github?view=azure-devops).
+- [Enable AI assistance with the Azure DevOps MCP Server](https://learn.microsoft.com/azure/devops/mcp-server/mcp-server-overview) - AI-assisted work-item and board tasks.
+- Sample repos: [nkdAgility/azure-devops-migration-tools](https://github.com/nkdAgility/azure-devops-migration-tools) (work items, test plans, pipelines) and [microsoft/azure-devops-node-api](https://github.com/microsoft/azure-devops-node-api) (REST client for scripted migration).
+
+**Confluence → SharePoint**
+
+- [How to use the SharePoint Migration Tool (SPMT)](https://learn.microsoft.com/sharepointmigration/how-to-use-the-sharepoint-migration-tool) - minimum requirements and workflow.
+- [Create a migration task with SPMT](https://learn.microsoft.com/sharepointmigration/spmt-create-task) - site, list/library, and bulk (CSV/JSON) migrations.
+- [Create a user-mapping file](https://learn.microsoft.com/sharepointmigration/create-a-user-mapping-file-for-data-content-migration) - preserve authorship and permissions.
+- [Migrate SharePoint workflows to Power Automate](https://learn.microsoft.com/sharepointmigration/spmt-workflow-overview).
+- Sample repo: [pnp/powershell](https://github.com/pnp/powershell) - PnP PowerShell for provisioning and post-migration configuration of SharePoint Online.
+
+**Test cases (qTest → Azure Test Plans)**
+
+- [Associate automated tests with test cases](https://learn.microsoft.com/azure/devops/test/associate-automated-test-with-test-case?view=azure-devops).
+- [Set up automated testing with Azure Test Plans](https://learn.microsoft.com/azure/devops/test/automated-testing-overview?view=azure-devops) and [run automated tests from test plans](https://learn.microsoft.com/azure/devops/test/run-automated-tests-from-test-hub?view=azure-devops).
 
 ## Accessibility and security notes
 
