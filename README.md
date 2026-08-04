@@ -35,6 +35,28 @@ Swagger UI and the OpenAPI document are exposed by the API. In Azure, the API an
 
 ![Architecture diagram of the L&W Rewards Player Loyalty POC](docs/architecture.png)
 
+The diagram shows how a single, integrated Microsoft toolchain carries a feature from a written requirement all the way to a running app and a business-facing assistant. Each platform owns one job and hands off to the next:
+
+1. **SharePoint - source of truth for project documentation.** Requirements, UX mockups, and reference decks live in SharePoint (see [Project documents](#project-documents)). It is the authoritative home for business and functional documentation.
+2. **Azure DevOps - work items, test cases, and pipelines.** The **AI Work Item Assistant** extension in Azure Boards reads the requirements in SharePoint and generates structured work items (epics, user stories, bugs, and test cases such as 54/55). Azure Test Plans hold the test cases and Azure Pipelines run builds, tests, and deployments.
+3. **GitHub - source code and GitHub Copilot.** Application code lives in GitHub. Azure Boards is connected to the GitHub repository so commits, branches, and pull requests link back to work items.
+4. **GitHub Copilot coding agent - implementation.** A work item in Azure DevOps is handed to the **GitHub Copilot coding agent**, which implements the change in GitHub and opens a pull request for review (see [Screenshots](#screenshots) for BUG 52 and BUG 53).
+5. **Azure App Service - hosting.** The Player Loyalty frontend and REST APIs are deployed as separate Linux Node.js App Service apps (see [Azure deployment](#azure-deployment)).
+6. **Microsoft Copilot Studio - business-facing agents.** Copilot Studio builds agents that connect to knowledge across SharePoint, Azure DevOps, and GitHub, then publishes them to **Microsoft Teams** and **Microsoft 365 Copilot** so business users can ask questions in natural language.
+
+| Stage | Microsoft technology | Role in this solution |
+| --- | --- | --- |
+| Documentation | **SharePoint** | Source of truth for requirements, UX mockups, and reference material |
+| Planning | **Azure DevOps Boards** + **AI Work Item Assistant** | Generate and manage work items and test cases from SharePoint requirements |
+| Test management | **Azure Test Plans** | Store test cases (e.g., 54/55) and bind them to the test pipeline |
+| CI/CD | **Azure Pipelines** | Build, test, and deploy the app and run automated test cases |
+| Source control | **GitHub** | Hosts application source code, branches, and pull requests |
+| AI implementation | **GitHub Copilot coding agent** | Implements Azure DevOps work items in GitHub via pull requests |
+| Hosting | **Azure App Service** | Runs the Player Loyalty frontend and APIs |
+| Business assistants | **Microsoft Copilot Studio** | Agents over SharePoint/ADO/GitHub knowledge, published to Teams and M365 Copilot |
+
+Together these products demonstrate the breadth of the Microsoft portfolio working as one system: documentation (SharePoint), planning and quality (Azure DevOps), code and AI-assisted development (GitHub and GitHub Copilot), cloud hosting (Azure), and conversational access for business users (Copilot Studio, Teams, and Microsoft 365 Copilot).
+
 ## Technology
 
 - React 19 and TypeScript
